@@ -1,0 +1,16 @@
+## Filename: samplesheet.txt
+## By: Yaomin Xu (yaomin at gmail.com)
+## Date: September 1, 2012
+## Notes: dptscan input samplesheet
+## =============================================================================
+### data file,	group label,	subject id,	include
+InputData/sample1.bow.50bp.txt,		N,	1,	Y
+InputData/sample2.bow.50bp.txt,		N,	2,	Y
+InputData/sample3.bow.50bp.txt,		N,	3,	Y
+InputData/sample4.bow.50bp.txt,		N,	4,	Y
+InputData/sample5.bow.50bp.txt,		N,	5,	Y
+InputData/sample6.bow.50bp.txt,		T,	6,	Y
+InputData/sample7.bow.50bp.txt,		T,	7,	Y
+InputData/sample8.bow.50bp.txt,		T,	8,	Y
+InputData/sample9.bow.50bp.txt,		T,	9,	Y
+InputData/sample10.bow.50bp.txt,	T,	10,	Y
