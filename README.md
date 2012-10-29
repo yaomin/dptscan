@@ -12,8 +12,8 @@ Requirement
 
 Install
 ------------
-- Follow the data preparation steps.
-- Create a project folder. Copy the preprocessed data to the data input subfolder, `InputData` (default).
+- Follow [the Data preparation and Profile binning steps](https://github.com/iDPT/dptscan/wiki).
+- Create a project folder. Copy the binned profile data to the data input subfolder, `InputData` (default).
 - Download [the dptscan zipball](https://github.com/iDPT/dptscan/zipball/master) and unzip the files into the project folder. Make `dptscan` executable with `chmod +x dptscan`.
 - Modify `samplesheet.text` and `experiment-config.r` files. 
 - Initialize the workspace with  
@@ -48,7 +48,7 @@ Options:
   <tr>
     <td><code>--chr=CHR</code></td>
     <td>Select one or a set of chromosomes to run. <br>
-      DEFAULT:<code>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y,M.</code>, which processes on all the chromosomes.</td>
+      DEFAULT:<code>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y,M</code>, which processes on all the chromosomes.</td>
   </tr>
   <tr>
     <td><code>--core=CORE</code></td>
