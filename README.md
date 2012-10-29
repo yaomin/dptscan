@@ -8,7 +8,7 @@ Introduction
 Requirement
 -----------
 - Linux servers (recommend multicore servers with > 128G memory)
-- R 2.14 or greater with `RScript` installed. R packages required: `MCMCpack`, `snowfall`, `nlme`, `gmodels`, `MASS`, `plyr`, `preprocessCore`, `inline`, `Rcpp`, `IRanges`, `Biostrings`, `mmap`, `getopt`, `snowfall`, `multicore`, `qvalue`.
+- R 2.14 or greater with `RScript` installed. R packages required: `MCMCpack`, `nlme`, `gmodels`, `MASS`, `plyr`, `preprocessCore`, `inline`, `Rcpp`, `IRanges`, `Biostrings`, `mmap`, `getopt`, `snowfall`, `multicore`, `qvalue`.
 
 Installation
 ------------
@@ -16,7 +16,7 @@ Installation
 - Create a project folder. Copy the binned profile data to the data input subfolder, `InputData` (default).
 - Download [the dptscan zipball](https://github.com/iDPT/dptscan/zipball/master) and unzip the files into the project folder. Make `dptscan` executable with `chmod +x dptscan`.
 - Modify `samplesheet.text` and `experiment-config.r` files. 
-- Initialize the workspace with  
+- Initiate the workspace with  
 
 >    dptscan -s
 
