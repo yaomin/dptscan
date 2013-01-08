@@ -1,6 +1,6 @@
 ## Filename: experiment-config.r
 ## By: Yaomin Xu (yaomin at gmail.com)
-## Date: October 27, 2012
+## Date: January 8, 2013
 ## Notes: Setup running parameters.  
 ## =============================================================================
 
@@ -8,7 +8,7 @@
 ##____________________________________________________________________
 
 ###... dptscan version
-dpt.version = "0.7.1"
+dpt.version = "0.7.2"
 
 ###... binning window size
 winsize = 50  
@@ -24,11 +24,11 @@ shear.gap = 500
 region.gap = 2000
 
 ###... filters
-initfilter.TF = FALSE
-initfilter.cutoff = 1
+initfilter.TF = TRUE
+initfilter.cutoff = 0.1
 
 fragsizefilter.TF = T
-fragsizefilter.cutoff = 120 ## minimum site width to be included for iDPT analysis
+fragsizefilter.cutoff = 120 ## fragment size for read extension
 
 bf.cutoff = NULL
 
