@@ -1,4 +1,4 @@
-README for dptscan (0.7.1)
+README for dptscan (0.7.x)
 ==========================
 Introduction
 ------------
@@ -79,6 +79,6 @@ Options:
 Reference
 ----------  
 1. Xu Y, Hu B, Choi AJ, Gopalan B, Lee BH, Kalady MF, Church JM, and Ting AH. Unique DNA methylome profiles in CpG island methylator phenotype colon cancers. Genome Res 2012, Feb;22(2):283-91.
-2. Ting AH, Hu B, Zhang L, Na J, Lee BH, and Xu Y. iDPT: an integrative approach for *de novo* identification of differentially enriched events in multi-sample sequencing studies (submitted).
+2. Ting AH, Hu B, Zhang L, Na J, Lee BH, and Xu Y. iDPT: an integrative approach for *de novo* identification of differentially enriched events in multi-sample sequencing studies (under review).
 
 
