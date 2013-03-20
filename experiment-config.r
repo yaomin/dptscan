@@ -10,8 +10,13 @@
 ###... dptscan version
 dpt.version = "0.7.2"
 
-###... binning window size
-winsize = 50  
+###... profile binning
+winsize = 50
+read.extension <- 120
+read.length <- 36
+use.FPKM <- F
+output.binnedProfile <- T
+
 ###... differential testing
 diffTest.cutoff = 0.05  # qvalue cutoff
 which.escore = 0 # quantitle function for composite event score, should be a small quantile between 0-0.5

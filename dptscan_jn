@@ -1,0 +1,256 @@
+#! /usr/bin/Rscript
+## Filename: dptscan
+## By: Yaomin Xu (yaomin@gmail.com)
+## Date: Tue Jan 10 15:42:20 2012
+## Notes:   Interface script for iDPT analysis
+## =============================================================================
+###... preparation
+DEBUGFLAG <- FALSE
+SINKED <- F
+cat("\n
+##--------------------------------------------------
+##
+## Thank you for using dptscan software package!
+##
+##--------------------------------------------------
+\n")
+
+if(!DEBUGFLAG) {
+  null.file <- tempfile()
+  null.con <- file(null.file, open="wt")
+  sink(null.con)
+  sink(null.con, type="message")
+  SINKED <- T
+}
+require('getopt')
+require('multicore')
+
+require('coda')
+require('lattice')
+require('grDevices')
+require('graphics')
+require('stats')
+require('utils')
+require('snow')
+require('BiocGenerics')
+
+library(dptmethods)
+
+
+if(SINKED) {
+  sink(type="message")
+  sink()
+  SINKED <- F
+}
+spec <- c('verbose', 'v', 2, "integer",
+          'help', 'h', 0, "logical",
+          'setup', 's', 2, "logical",
+          'overwrite','w',2,"logical",
+          'task', 't', 2, "character",
+          'chr', 'c', 2, "character",
+          'core', 'k', 2, "character",
+          'batch', 'b',2, "character",
+          'samplesheet', 'm',2,"character",
+          'config', 'f', 2, "character",
+          'output', 'o', 2, "character",
+          'input', 'i', 2, "character",
+          'analysis', 'a', 1,"character",
+          'retryn','r',2,"integer"
+          )
+opt <- getopt(matrix(spec, ncol=4, byrow=T))
+## help was asked for.
+if ( !is.null(opt$help) | length(opt)==1) {
+  #get the script name (only works when invoked with Rscript).
+  self = commandArgs()[1]
+  #print a friendly message and exit with a non-zero error code
+  cat(paste("Usage: ",
+            self,
+            " [-[vh]]
+ [-[-setup|s]]
+ [-[-task|t] <tasks>]
+ [-[-chr|c] <chrs>]
+ [-[-core|k] <core>]
+ [-[-batch|b] <batch>]
+ [-[-samplesheet|m] <samplesheet>]
+ [-[-config|f] <config>]
+ [-[-output|o] <output>]
+ [-[-analysis|a] <analysisType>]
+ \n",
+            sep=""))
+  q(status=1)
+}
+##. option defaults
+if(is.null(opt$verbose)) opt$verbose <- 0
+if(is.null(opt$setup)) opt$setup <- FALSE
+if(is.null(opt$task)) opt$task <- "preprocess,mixPoi,pattRecog,diffTest,report"
+if(is.null(opt$overwrite)) opt$overwrite <- FALSE
+if(is.null(opt$chr)) opt$chr <- "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y,M"
+if(is.null(opt$core)) opt$core <- '1'
+if(is.null(opt$batch)) opt$batch <- '1'
+if(is.null(opt$output)) opt$output <- getwd()
+if(is.null(opt$input)) opt$input <- file.path(getwd(),"InputData")
+if(is.null(opt$samplesheet)) opt$samplesheet <- "samplesheet.txt"
+if(is.null(opt$config)) opt$config <- "experiment.config.R"
+if(is.null(opt$retryn)) opt$retryn <- 3
+if(is.null(opt$analysis)) opt$analysis <- "methyl"
+opt$url <- "http://dl.dropbox.com/u/10421230/dpt"
+opt$ws.root <- "DPT_ws"
+opt.names.print <- setdiff(names(opt), c("ARGS","url", "ws.root"))
+if(is.null(opt$analysis) & !opt$setup) stop("analysis is required! Options are methyl")
+
+if(opt$verbose>0) {
+  cat("#### input options ####\n")
+  commandArgs()
+  print(opt)
+} 
+
+###... initialize DPT
+currentDir <- getwd()
+setwd(opt$output)
+if(opt$setup) {
+  cat("#### (re)initialize DPT workspace ####\n")
+  sample.sheet <- opt$samplesheet
+  cat("-- load configuration from", opt$config,"\n")
+  source(opt$config)
+  cat("-- DPT version:", dpt.version,"\n")
+  cat("-- load DPT modules\n")
+  if(opt$verbose==0) {
+    null.file <- tempfile()
+    null.con <- file(null.file, open="wt")
+    sink(null.con)
+    sink(null.con, type="message")
+    SINKED <- T
+  }  
+
+  #source(file.path(opt$url, dpt.version,"dpt.access.R"), echo=F)
+  #source("dptmethods/R/dptworkflow.r")
+  eval(.dptworkflow)
+  
+  if(SINKED) {
+    sink(type="message")
+    sink()
+    SINKED <- F
+  }
+  cat("-- create workspace file structure\n")
+  init.ws.dirs()
+  rm("opt")
+  cat("-- save shared workspace data\n") 
+  save.ws.image()
+  q()## only process allowed when setup =T
+} else {
+  cat("#### load DPT workspace ####\n")
+  cat("-- load saved workspace session\n")
+  if(opt$verbose==0) {
+    null.file <- tempfile()
+    null.con <- file(null.file, open="wt")
+    sink(null.con)
+    sink(null.con, type="message")
+    SINKED <- T
+  }
+  load(file.path(opt$ws.root, ".RData"))
+  .First()
+  if(SINKED) {
+    sink(type="message")
+    sink()
+    SINKED <- F
+  }
+}
+
+setwd(get.ws.path('root'))
+
+###... process jobs
+tasks <- unlist(strsplit(opt$task, split=","))
+batchs <- as.integer(unlist(strsplit(opt$batch, split=",")))
+cores <- as.integer(unlist(strsplit(opt$core, split=",")))
+
+if(!length(batchs) %in% c(1,length(tasks))) {
+  stop("batch is either a number or a list of numbers, each applies to a task")
+} else if(length(batchs)==1) {
+  batchs <- rep(batchs, length(tasks))
+}
+if(!length(cores) %in% c(1,length(tasks))){
+  stop("core is either a number or a list of numbers, each applies to a task")
+} else if(length(cores)==1) {
+  cores <- rep(cores, length(tasks))
+}
+
+chrs <- paste("chr", unlist(strsplit(opt$chr, split=",")), sep="")
+failed.jobs <- list()
+
+if(!DEBUGFLAG) options(warn = -1)
+sink(type="message")
+sink()
+
+for(.tsk in tasks) {
+  .wh <- which(tasks==.tsk)
+  .co <- cores[.wh]
+  .ba <- batchs[.wh] 
+  if(.tsk == "preprocess") {
+    cat("####",.tsk,"####\n")
+    create.ws.dir('preprocess')
+    ##.done <- eval(call.js)
+    cat("num of batches:", 1, "\n")
+    cat("num of cores:", 1, "\n")
+    failed.jobs$preprocess <- batch.jobs(call.js, .co, .ba, by.chr=F, retry.n=opt$retryn)
+    if(length(failed.jobs$preprocess)>0) {
+      cat("failed process:",.tsk,"\n\n")
+    }
+    ## TODO: mapping widonwed reads after bowtie process
+  } else if(.tsk == "mixPoi") {
+    cat("####",.tsk,"####\n")
+    create.ws.dir('mixPoisson')
+    cat("num of batches:", .ba, "\n")
+    cat("num of cores:", .co, "\n")
+    failed.jobs$mixPoi <- batch.jobs(call.mp, .co, .ba, chrs, by.chr=T, retry.n=opt$retryn)
+    if(length(failed.jobs$mixPoi)>0) {
+      cat("failed process:",failed.jobs$mixPoi,"\n\n")
+    }
+    ## check joinSamples for the listed chrs
+    ## caller
+  } else if(.tsk == "pattRecog") {
+    cat("####",.tsk,"####\n")
+    create.ws.dir('pattRecog')
+    cat("num of batches:", .ba, "\n")
+    cat("num of cores:", .co, "\n")
+    failed.jobs$pattRecog <- batch.jobs(call.pr, .co, .ba, chrs, by.chr=T, retry.n=opt$retryn)
+    if(length(failed.jobs$pattRecog)>0) {
+      cat("failed process:",failed.jobs$pattRecog,"\n\n")
+    }
+    ## check mixPoi
+    ## caller
+  } else if(.tsk == "diffTest") {
+    ## check pattRecog
+    ## caller
+    cat("####",.tsk,"####\n")
+    create.ws.dir('diffTest')
+    cat("num of batches:", .ba, "\n")
+    cat("num of cores:", .co, "\n")
+    failed.jobs$diffTest <- batch.jobs(call.dt, .co, .ba, chrs, by.chr=T, retry.n=opt$retryn)
+    if(length(failed.jobs$diffTest)>0) {
+      cat("failed process:",failed.jobs$diffTest,"\n\n")
+    }
+  } else if(.tsk == "report") {
+    ## check needs
+    ## callers
+    cat("####",.tsk,"####\n")
+    create.ws.dir('report')
+    cat("num of batches:", 1, "\n")
+    cat("num of cores:", 1, "\n")
+    .f1 <- batch.jobs(call.rp, .co, .ba, by.chr=F)
+    if(opt$analysis=="methyl") {
+      cat("###",opt$analysis,"####\n")
+      cat("num of batches:", 1, "\n")
+      cat("num of cores:", .co, "\n")
+      .f2 <- batch.jobs(call.methyl, .co, .ba, by.chr=F, retry.n=opt$retryn)
+    }
+    failed.jobs$report <- c(if(length(.f1)>0) .tsk else NULL,
+                            if(length(.f2)>0) opt$analysis else NULL)
+    if(length(failed.jobs$report)>0) {
+      cat("failed process:",failed.jobs$report,"\n\n")
+    }
+  }
+}
+cat("#### failed job(s) ####\n")
+print(failed.jobs)
+setwd(currentDir)
+q(save="no", status=ifelse(length(failed.jobs)>0, 1, 0))
