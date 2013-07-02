@@ -150,7 +150,7 @@ if(opt$setup) {
     SINKED <- T
   }
   load(file.path(opt$ws.root, ".RData"))
-  .First()
+  ## .First()
   if(SINKED) {
     sink(type="message")
     sink()
