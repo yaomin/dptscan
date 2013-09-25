@@ -1,4 +1,4 @@
-#! /usr/bin/Rscript
+#!/usr/bin/env Rscript
 ## Filename: dptscan
 ## By: Yaomin Xu (yaomin@gmail.com)
 ## Date: Tue Jan 10 15:42:20 2012
